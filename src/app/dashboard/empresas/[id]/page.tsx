@@ -7,6 +7,7 @@ import { obtenerServicioSII } from "@/lib/services/sii";
 import { obtenerServicioDT } from "@/lib/services/dt";
 import { formatearCLP, formatearPeriodo, formatearFecha } from "@/lib/formato";
 import { ArrowLeft, Pencil } from "lucide-react";
+import { GraficoF29 } from "./GraficoF29";
 
 export default async function DetalleEmpresaPage({
   params,
@@ -125,6 +126,14 @@ export default async function DetalleEmpresaPage({
           </p>
         </div>
       </div>
+
+      {/* Gráfico del historial */}
+      <section className="bg-slate-800 rounded-2xl border border-slate-700 p-6">
+        <h2 className="text-sm font-semibold text-slate-400 uppercase mb-4">
+          Total a pagar por mes
+        </h2>
+        <GraficoF29 historial={historial} />
+      </section>
 
       {/* Historial F29 */}
       <section className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
