@@ -3,7 +3,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BotonEliminar } from "./BotonEliminar";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Building2 } from "lucide-react";
 
 export default async function EmpresasPage() {
   const sesion = await auth();
@@ -30,13 +30,19 @@ export default async function EmpresasPage() {
       </div>
 
       {empresas.length === 0 ? (
-        <div className="bg-slate-800/50 border border-slate-700 border-dashed rounded-2xl p-12 text-center">
-          <p className="text-slate-400">Todavía no tienes empresas registradas.</p>
+        <div className="bg-slate-800/50 border border-slate-700 border-dashed rounded-2xl p-16 text-center">
+          <div className="w-16 h-16 mx-auto bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
+            <Building2 className="text-blue-400" size={28} />
+          </div>
+          <h3 className="text-lg font-semibold text-white">No tienes empresas todavía</h3>
+          <p className="text-slate-400 text-sm mt-1 mb-5">
+            Agrega tu primera empresa para empezar a gestionar sus declaraciones.
+          </p>
           <Link
             href="/dashboard/empresas/nueva"
-            className="inline-block mt-4 text-blue-400 hover:text-blue-300 font-medium"
+            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
           >
-            Agregar tu primera empresa →
+            <Plus size={16} /> Agregar empresa
           </Link>
         </div>
       ) : (

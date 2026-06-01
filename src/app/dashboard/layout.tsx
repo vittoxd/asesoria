@@ -26,7 +26,7 @@ export default async function DashboardLayout({
         estudioNombre={usuario?.estudioNombre ?? null}
       />
 
-      <div className="flex-1 min-w-0">{children}</div>
+      <div className="flex-1 min-w-0 pt-14 lg:pt-0">{children}</div>
 
       {/* Sistema de toasts */}
       <Toaster theme="dark" position="top-right" richColors />
