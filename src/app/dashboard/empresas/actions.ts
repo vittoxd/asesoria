@@ -61,7 +61,7 @@ export async function crearEmpresa(formData: FormData) {
   });
 
   revalidatePath("/dashboard/empresas");
-  redirect("/dashboard/empresas");
+  redirect("/dashboard/empresas?ok=creada");
 }
 
 export async function actualizarEmpresa(id: string, formData: FormData) {
@@ -103,7 +103,7 @@ export async function actualizarEmpresa(id: string, formData: FormData) {
   });
 
   revalidatePath("/dashboard/empresas");
-  redirect("/dashboard/empresas");
+  redirect("/dashboard/empresas?ok=actualizada");
 }
 
 export async function eliminarEmpresa(id: string) {
@@ -132,4 +132,5 @@ export async function eliminarEmpresa(id: string) {
   });
 
   revalidatePath("/dashboard/empresas");
+  redirect("/dashboard/empresas?ok=eliminada");
 }
