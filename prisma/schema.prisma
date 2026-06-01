@@ -1,0 +1,373 @@
+// AsesorIA — Schema de base de datos
+// SQLite para desarrollo local, PostgreSQL en producción (Railway)
+// Los enums se manejan como String en SQLite y se validan en TypeScript
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ─────────────────────────────────────────────
+// ESTUDIO CONTABLE — el "tenant" principal
+// ─────────────────────────────────────────────
+
+model Estudio {
+  id            String   @id @default(cuid())
+  nombre        String
+  rut           String?  @unique
+  direccion     String?
+  telefono      String?
+  logoUrl       String?
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  usuarios    Usuario[]
+  empresas    Empresa[]
+  suscripcion Suscripcion?
+  alertas     Alerta[]
+
+  @@map("estudios")
+}
+
+// ─────────────────────────────────────────────
+// USUARIO — todos los roles en una sola tabla
+// rol: SUPERADMIN | ADMIN | CONTADOR | CLIENTE
+// ─────────────────────────────────────────────
+
+model Usuario {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String
+  nombre              String
+  apellido            String?
+  telefono            String?
+  avatarUrl           String?
+  rol                 String    @default("CONTADOR")
+  activo              Boolean   @default(true)
+  emailVerificado     Boolean   @default(false)
+  dobleFactorActivo   Boolean   @default(false)
+  dobleFactorSecret   String?
+  ultimoLoginEn       DateTime?
+  creadoEn            DateTime  @default(now())
+  actualizadoEn       DateTime  @updatedAt
+
+  estudioId        String?
+  estudio          Estudio? @relation(fields: [estudioId], references: [id])
+
+  empresaClienteId String?
+  empresaCliente   Empresa? @relation("ClienteEmpresa", fields: [empresaClienteId], references: [id])
+
+  empresasAsignadas UsuarioEmpresa[]
+  sesiones          Sesion[]
+  auditLogs         AuditLog[]
+  alertasCreadas    Alerta[]
+
+  @@map("usuarios")
+}
+
+// ─────────────────────────────────────────────
+// EMPRESA — cada empresa que maneja el estudio
+// ─────────────────────────────────────────────
+
+model Empresa {
+  id              String    @id @default(cuid())
+  rut             String    @unique
+  razonSocial     String
+  nombreFantasia  String?
+  giro            String?
+  direccion       String?
+  comuna          String?
+  ciudad          String?
+  telefono        String?
+  email           String?
+  activa          Boolean   @default(true)
+
+  // SII — NUNCA guardamos la clave tributaria
+  siiTokenTemp      String?
+  siiTokenExpiraEn  DateTime?
+  siiConectada      Boolean  @default(false)
+  siiUltimaSync     DateTime?
+
+  // Certificado digital DTE (encriptado con AES-256)
+  certificadoDigital  String?
+  certificadoExpiraEn DateTime?
+
+  estudioId     String
+  estudio       Estudio @relation(fields: [estudioId], references: [id])
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  contadoresAsignados UsuarioEmpresa[]
+  clienteUsuarios     Usuario[]        @relation("ClienteEmpresa")
+  declaracionesF29    DeclaracionF29[]
+  declaracionesF22    DeclaracionF22[]
+  empleados           Empleado[]
+  remuneraciones      Remuneracion[]
+  alertas             Alerta[]
+  documentos          Documento[]
+
+  @@map("empresas")
+}
+
+// ─────────────────────────────────────────────
+// USUARIO-EMPRESA — seguridad capa 1 (multi-tenant)
+// ─────────────────────────────────────────────
+
+model UsuarioEmpresa {
+  id          String   @id @default(cuid())
+  usuarioId   String
+  empresaId   String
+  asignadoEn  DateTime @default(now())
+  asignadoPor String?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, empresaId])
+  @@map("usuario_empresas")
+}
+
+// ─────────────────────────────────────────────
+// SUSCRIPCIÓN Y PAGOS
+// plan: STARTER | PYME | PRO | CORPORATIVO
+// estado: ACTIVA | VENCIDA | CANCELADA | PRUEBA
+// ─────────────────────────────────────────────
+
+model Suscripcion {
+  id                String    @id @default(cuid())
+  estudioId         String    @unique
+  plan              String    @default("STARTER")
+  estado            String    @default("PRUEBA")
+  precioMensual     Int
+  inicioPrueba      DateTime?
+  inicioSuscripcion DateTime?
+  proximoCobro      DateTime?
+  canceladaEn       DateTime?
+  mpSuscripcionId   String?   @unique
+  mpPreapprovalId   String?
+  creadoEn          DateTime  @default(now())
+  actualizadoEn     DateTime  @updatedAt
+
+  estudio Estudio @relation(fields: [estudioId], references: [id])
+  pagos   Pago[]
+
+  @@map("suscripciones")
+}
+
+model Pago {
+  id            String   @id @default(cuid())
+  suscripcionId String
+  monto         Int
+  estado        String   // approved | pending | rejected
+  mpPagoId      String?  @unique
+  periodoInicio DateTime
+  periodoFin    DateTime
+  creadoEn      DateTime @default(now())
+
+  suscripcion Suscripcion @relation(fields: [suscripcionId], references: [id])
+
+  @@map("pagos")
+}
+
+// ─────────────────────────────────────────────
+// DECLARACIÓN F29 — IVA mensual
+// estado: PENDIENTE | DECLARADA | ATRASADA | RECTIFICADA
+// ─────────────────────────────────────────────
+
+model DeclaracionF29 {
+  id               String    @id @default(cuid())
+  empresaId        String
+  periodo          String    // "2026-05"
+  estado           String    @default("PENDIENTE")
+  fechaVencimiento DateTime
+  fechaDeclaracion DateTime?
+  debito           Int?
+  credito          Int?
+  iva              Int?
+  ppm              Int?
+  total            Int?
+  datosRaw         String?   // JSON como texto
+  creadoEn         DateTime  @default(now())
+  actualizadoEn    DateTime  @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, periodo])
+  @@map("declaraciones_f29")
+}
+
+// ─────────────────────────────────────────────
+// DECLARACIÓN F22 — Renta anual
+// ─────────────────────────────────────────────
+
+model DeclaracionF22 {
+  id               String    @id @default(cuid())
+  empresaId        String
+  anio             Int
+  estado           String    @default("PENDIENTE")
+  fechaVencimiento DateTime
+  fechaDeclaracion DateTime?
+  ingresos         Int?
+  gastos           Int?
+  utilidad         Int?
+  impuesto         Int?
+  datosRaw         String?
+  creadoEn         DateTime  @default(now())
+  actualizadoEn    DateTime  @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@unique([empresaId, anio])
+  @@map("declaraciones_f22")
+}
+
+// ─────────────────────────────────────────────
+// EMPLEADOS Y REMUNERACIONES
+// ─────────────────────────────────────────────
+
+model Empleado {
+  id           String    @id @default(cuid())
+  empresaId    String
+  rut          String
+  nombre       String
+  apellido     String
+  cargo        String?
+  sueldoBase   Int
+  fechaIngreso DateTime
+  fechaSalida  DateTime?
+  activo       Boolean   @default(true)
+  email        String?
+  telefono     String?
+  creadoEn     DateTime  @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  empresa        Empresa        @relation(fields: [empresaId], references: [id])
+  remuneraciones Remuneracion[]
+
+  @@unique([empresaId, rut])
+  @@map("empleados")
+}
+
+model Remuneracion {
+  id              String    @id @default(cuid())
+  empresaId       String
+  empleadoId      String
+  periodo         String    // "2026-05"
+  sueldoBase      Int
+  horasExtra      Int       @default(0)
+  bonos           Int       @default(0)
+  descuentos      Int       @default(0)
+  cotizacionAFP   Int?
+  cotizacionSalud Int?
+  liquidoAPagar   Int?
+  pagado          Boolean   @default(false)
+  fechaPago       DateTime?
+  creadoEn        DateTime  @default(now())
+  actualizadoEn   DateTime  @updatedAt
+
+  empresa  Empresa  @relation(fields: [empresaId], references: [id])
+  empleado Empleado @relation(fields: [empleadoId], references: [id])
+
+  @@unique([empleadoId, periodo])
+  @@map("remuneraciones")
+}
+
+// ─────────────────────────────────────────────
+// DOCUMENTOS — facturas, boletas, etc.
+// ─────────────────────────────────────────────
+
+model Documento {
+  id          String   @id @default(cuid())
+  empresaId   String
+  tipo        String   // factura | boleta | nota_credito
+  folio       Int?
+  rutEmisor   String?
+  rutReceptor String?
+  fecha       DateTime
+  montoNeto   Int?
+  iva         Int?
+  montoTotal  Int?
+  datosRaw    String?
+  creadoEn    DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id])
+
+  @@map("documentos")
+}
+
+// ─────────────────────────────────────────────
+// ALERTAS
+// tipo: VENCIMIENTO_F29 | VENCIMIENTO_F22 | MULTA_SII | etc.
+// prioridad: BAJA | MEDIA | ALTA | CRITICA
+// ─────────────────────────────────────────────
+
+model Alerta {
+  id          String   @id @default(cuid())
+  estudioId   String
+  empresaId   String?
+  tipo        String
+  prioridad   String   @default("MEDIA")
+  titulo      String
+  descripcion String?
+  fechaAlerta DateTime
+  leida       Boolean  @default(false)
+  resuelta    Boolean  @default(false)
+  creadaPor   String?
+  creadoEn    DateTime @default(now())
+
+  estudio Estudio  @relation(fields: [estudioId], references: [id])
+  empresa Empresa? @relation(fields: [empresaId], references: [id])
+  usuario Usuario? @relation(fields: [creadaPor], references: [id])
+
+  @@map("alertas")
+}
+
+// ─────────────────────────────────────────────
+// SESIONES — control para Guardian IA
+// ─────────────────────────────────────────────
+
+model Sesion {
+  id        String   @id @default(cuid())
+  usuarioId String
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  pais      String?
+  ciudad    String?
+  activa    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
+  expiraEn  DateTime
+  cerradaEn DateTime?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("sesiones")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG — registro inmutable (Ley 21.719)
+// tipo: LOGIN | LOGOUT | VER_EMPRESA | EXPORTAR_DATO | etc.
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  usuarioId   String?
+  tipo        String
+  descripcion String
+  ipAddress   String?
+  userAgent   String?
+  recursoId   String?
+  recursoTipo String?
+  exitoso     Boolean  @default(true)
+  metadatos   String?  // JSON como texto
+  creadoEn    DateTime @default(now())
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@map("audit_logs")
+}
