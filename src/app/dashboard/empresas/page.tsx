@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { eliminarEmpresa } from "./actions";
+import { BotonEliminar } from "./BotonEliminar";
 
 export default async function EmpresasPage() {
   // 1. Saber quién es el usuario y a qué estudio pertenece
@@ -73,7 +73,14 @@ export default async function EmpresasPage() {
               <tbody>
                 {empresas.map((empresa) => (
                   <tr key={empresa.id} className="border-t border-slate-700 hover:bg-slate-700/30">
-                    <td className="px-6 py-4 font-medium">{empresa.razonSocial}</td>
+                    <td className="px-6 py-4 font-medium">
+                      <Link
+                        href={`/dashboard/empresas/${empresa.id}`}
+                        className="hover:text-blue-400 transition-colors"
+                      >
+                        {empresa.razonSocial}
+                      </Link>
+                    </td>
                     <td className="px-6 py-4 text-slate-300">{empresa.rut}</td>
                     <td className="px-6 py-4 text-slate-400">{empresa.giro ?? "—"}</td>
                     <td className="px-6 py-4 text-slate-400">{empresa.comuna ?? "—"}</td>
@@ -86,15 +93,8 @@ export default async function EmpresasPage() {
                           Editar
                         </Link>
 
-                        {/* Eliminar: form que llama a la server action con el id */}
-                        <form action={eliminarEmpresa.bind(null, empresa.id)}>
-                          <button
-                            type="submit"
-                            className="text-red-400 hover:text-red-300"
-                          >
-                            Eliminar
-                          </button>
-                        </form>
+                        {/* Eliminar: ahora con confirmación (Client Component) */}
+                        <BotonEliminar id={empresa.id} nombre={empresa.razonSocial} />
                       </div>
                     </td>
                   </tr>
