@@ -24,6 +24,7 @@ export default async function DashboardLayout({
         nombre={usuario?.name ?? "Usuario"}
         email={usuario?.email ?? ""}
         estudioNombre={usuario?.estudioNombre ?? null}
+        rol={usuario?.rol ?? "CONTADOR"}
       />
 
       <div className="flex-1 min-w-0 pt-14 lg:pt-0">{children}</div>
