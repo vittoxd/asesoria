@@ -13,7 +13,6 @@ import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Building2,
-  Users,
   UserCog,
   Bell,
   Settings,
@@ -25,17 +24,13 @@ import {
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/empresas", label: "Empresas", icon: Building2 },
+  { href: "/dashboard/alertas", label: "Alertas", icon: Bell },
 ];
 
 // Links visibles solo para ADMIN/SUPERADMIN
 const NAV_ADMIN = [
   { href: "/dashboard/usuarios", label: "Usuarios", icon: UserCog },
-];
-
-const NAV_FUTURO = [
-  { label: "Remuneraciones", icon: Users },
-  { label: "Alertas", icon: Bell },
-  { label: "Configuración", icon: Settings },
+  { href: "/dashboard/configuracion", label: "Configuración", icon: Settings },
 ];
 
 export function Sidebar({
@@ -136,24 +131,6 @@ export function Sidebar({
             );
           })}
 
-          <div className="pt-4 pb-2 px-3">
-            <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider">
-              Próximamente
-            </p>
-          </div>
-
-          {NAV_FUTURO.map((item) => {
-            const Icono = item.icon;
-            return (
-              <div
-                key={item.label}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 cursor-not-allowed"
-              >
-                <Icono size={18} />
-                {item.label}
-              </div>
-            );
-          })}
         </nav>
 
         {/* Usuario + logout */}
