@@ -9,7 +9,7 @@ import { formatearCLP } from "@/lib/formato";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Users, Pencil } from "lucide-react";
 
 export default async function EmpleadosPage({
   params,
@@ -115,7 +115,13 @@ export default async function EmpleadosPage({
                   <td className="px-6 py-4 text-slate-400">{emp.cargo ?? "—"}</td>
                   <td className="px-6 py-4 text-right">{formatearCLP(emp.sueldoBase)}</td>
                   <td className="px-6 py-4">
-                    <div className="flex justify-end">
+                    <div className="flex items-center justify-end gap-4">
+                      <Link
+                        href={`/dashboard/empresas/${id}/empleados/${emp.id}/editar`}
+                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300"
+                      >
+                        <Pencil size={14} /> Editar
+                      </Link>
                       <BotonEliminarEmpleado
                         empresaId={id}
                         empleadoId={emp.id}

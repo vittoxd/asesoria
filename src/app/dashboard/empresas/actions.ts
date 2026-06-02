@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+// Estado que devuelven los formularios (para useActionState)
+export type FormState = { error?: string };
+
 async function requireEstudio() {
   const sesion = await auth();
 
@@ -24,7 +27,7 @@ async function requireEstudio() {
   return { usuarioId: sesion.user.id, estudioId };
 }
 
-export async function crearEmpresa(formData: FormData) {
+export async function crearEmpresa(_prev: FormState, formData: FormData): Promise<FormState> {
   const { usuarioId, estudioId } = await requireEstudio();
 
   const rut = String(formData.get("rut") ?? "").trim();
@@ -33,12 +36,12 @@ export async function crearEmpresa(formData: FormData) {
   const comuna = String(formData.get("comuna") ?? "").trim();
 
   if (!rut || !razonSocial) {
-    throw new Error("el RUT y la razon social son obligatorias");
+    return { error: "El RUT y la razón social son obligatorios." };
   }
 
   const existe = await prisma.empresa.findUnique({ where: { rut } });
   if (existe) {
-    throw new Error("Ya existe una empresa con ese RUT");
+    return { error: "Ya existe una empresa con ese RUT." };
   }
 
   await prisma.empresa.create({
@@ -64,7 +67,7 @@ export async function crearEmpresa(formData: FormData) {
   redirect("/dashboard/empresas?ok=creada");
 }
 
-export async function actualizarEmpresa(id: string, formData: FormData) {
+export async function actualizarEmpresa(id: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const { usuarioId, estudioId } = await requireEstudio();
 
   const empresa = await prisma.empresa.findFirst({
@@ -72,7 +75,7 @@ export async function actualizarEmpresa(id: string, formData: FormData) {
   });
 
   if (!empresa) {
-    throw new Error("Empresa no encontrada o no tienes acceso a ella");
+    return { error: "Empresa no encontrada o no tienes acceso a ella." };
   }
 
   const razonSocial = String(formData.get("razonSocial") ?? "").trim();
@@ -80,7 +83,7 @@ export async function actualizarEmpresa(id: string, formData: FormData) {
   const comuna = String(formData.get("comuna") ?? "").trim();
 
   if (!razonSocial) {
-    throw new Error("La razon social es obligatoria");
+    return { error: "La razón social es obligatoria." };
   }
 
   await prisma.empresa.update({

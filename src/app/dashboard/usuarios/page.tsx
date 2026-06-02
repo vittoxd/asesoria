@@ -2,6 +2,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { crearUsuario, toggleUsuarioActivo, toggleAsignacionEmpresa } from "./actions";
+import { BotonResetPassword } from "./BotonResetPassword";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -93,13 +94,16 @@ export default async function UsuariosPage() {
                   </div>
                 </div>
 
-                {/* Activar/desactivar (no a sí mismo, no a otros admin) */}
+                {/* Acciones (no sobre sí mismo, no sobre otros admin) */}
                 {u.id !== miId && u.rol !== "ADMIN" && (
-                  <form action={toggleUsuarioActivo.bind(null, u.id)}>
-                    <button type="submit" className="text-slate-400 hover:text-white text-sm">
-                      {u.activo ? "Desactivar" : "Activar"}
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-4">
+                    <BotonResetPassword usuarioId={u.id} email={u.email} />
+                    <form action={toggleUsuarioActivo.bind(null, u.id)}>
+                      <button type="submit" className="text-slate-400 hover:text-white text-sm">
+                        {u.activo ? "Desactivar" : "Activar"}
+                      </button>
+                    </form>
+                  </div>
                 )}
               </div>
 

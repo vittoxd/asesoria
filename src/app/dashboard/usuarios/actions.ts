@@ -101,6 +101,41 @@ export async function toggleUsuarioActivo(usuarioObjetivoId: string) {
   revalidatePath("/dashboard/usuarios");
 }
 
+// ── Restablecer la contraseña de un usuario (lo hace el admin) ──
+export async function restablecerPassword(usuarioObjetivoId: string, formData: FormData) {
+  const { usuarioId, estudioId } = await requireAdmin();
+
+  const objetivo = await prisma.usuario.findFirst({
+    where: { id: usuarioObjetivoId, estudioId },
+  });
+  if (!objetivo) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  const nueva = String(formData.get("password") ?? "");
+  if (nueva.length < 6) {
+    throw new Error("La contraseña debe tener al menos 6 caracteres");
+  }
+
+  const passwordHash = await hashPassword(nueva);
+  await prisma.usuario.update({
+    where: { id: usuarioObjetivoId },
+    data: { passwordHash },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      usuarioId,
+      tipo: "RESET_PASSWORD",
+      descripcion: `Restableció la contraseña de ${objetivo.email}`,
+      recursoId: usuarioObjetivoId,
+      recursoTipo: "usuario",
+    },
+  });
+
+  revalidatePath("/dashboard/usuarios");
+}
+
 // ── Asignar / quitar una empresa a un contador ──
 export async function toggleAsignacionEmpresa(
   usuarioObjetivoId: string,
