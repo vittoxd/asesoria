@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Building2,
   Users,
+  UserCog,
   Bell,
   Settings,
   LogOut,
@@ -26,6 +27,11 @@ const NAV = [
   { href: "/dashboard/empresas", label: "Empresas", icon: Building2 },
 ];
 
+// Links visibles solo para ADMIN/SUPERADMIN
+const NAV_ADMIN = [
+  { href: "/dashboard/usuarios", label: "Usuarios", icon: UserCog },
+];
+
 const NAV_FUTURO = [
   { label: "Remuneraciones", icon: Users },
   { label: "Alertas", icon: Bell },
@@ -36,13 +42,19 @@ export function Sidebar({
   nombre,
   email,
   estudioNombre,
+  rol,
 }: {
   nombre: string;
   email: string;
   estudioNombre: string | null;
+  rol: string;
 }) {
   const pathname = usePathname();
   const [abierto, setAbierto] = useState(false); // drawer móvil
+
+  // Si es admin, sumamos los links de admin a la navegación
+  const esAdmin = rol === "ADMIN" || rol === "SUPERADMIN";
+  const navItems = esAdmin ? [...NAV, ...NAV_ADMIN] : NAV;
 
   function esActivo(href: string): boolean {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -104,7 +116,7 @@ export function Sidebar({
 
         {/* Navegación */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV.map((item) => {
+          {navItems.map((item) => {
             const Icono = item.icon;
             const activo = esActivo(item.href);
             return (
