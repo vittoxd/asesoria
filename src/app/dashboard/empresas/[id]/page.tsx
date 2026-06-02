@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { obtenerServicioSII } from "@/lib/services/sii";
 import { obtenerServicioDT } from "@/lib/services/dt";
 import { formatearCLP, formatearPeriodo, formatearFecha } from "@/lib/formato";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Users } from "lucide-react";
 import { GraficoF29 } from "./GraficoF29";
 
 export default async function DetalleEmpresaPage({
@@ -50,12 +50,20 @@ export default async function DetalleEmpresaPage({
           <h1 className="text-2xl font-bold mt-2">{empresa.razonSocial}</h1>
           <p className="text-slate-500 text-sm">{empresa.rut}</p>
         </div>
-        <Link
-          href={`/dashboard/empresas/${empresa.id}/editar`}
-          className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm"
-        >
-          <Pencil size={14} /> Editar
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/dashboard/empresas/${empresa.id}/empleados`}
+            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm"
+          >
+            <Users size={14} /> Empleados
+          </Link>
+          <Link
+            href={`/dashboard/empresas/${empresa.id}/editar`}
+            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm"
+          >
+            <Pencil size={14} /> Editar
+          </Link>
+        </div>
       </div>
 
       {/* Datos básicos */}
