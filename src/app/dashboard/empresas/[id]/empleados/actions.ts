@@ -9,6 +9,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 // Guardia: verifica sesión, permiso y que la empresa sea del estudio
 async function verificarEmpresa(empresaId: string) {
@@ -79,6 +80,55 @@ export async function crearEmpleado(empresaId: string, formData: FormData) {
   });
 
   revalidatePath(`/dashboard/empresas/${empresaId}/empleados`);
+}
+
+// ── Editar empleado ──
+export async function editarEmpleado(
+  empresaId: string,
+  empleadoId: string,
+  formData: FormData
+) {
+  const { usuarioId } = await verificarEmpresa(empresaId);
+
+  // Verificar que el empleado sea de esta empresa
+  const empleado = await prisma.empleado.findFirst({
+    where: { id: empleadoId, empresaId },
+  });
+  if (!empleado) {
+    throw new Error("Empleado no encontrado");
+  }
+
+  const nombre = String(formData.get("nombre") ?? "").trim();
+  const apellido = String(formData.get("apellido") ?? "").trim();
+  const cargo = String(formData.get("cargo") ?? "").trim();
+  const sueldoBase = Number(formData.get("sueldoBase") ?? 0);
+
+  if (!nombre || !apellido || !sueldoBase) {
+    throw new Error("Faltan datos obligatorios");
+  }
+
+  await prisma.empleado.update({
+    where: { id: empleadoId },
+    data: {
+      nombre,
+      apellido,
+      cargo: cargo || null,
+      sueldoBase,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      usuarioId,
+      tipo: "EDITAR_EMPLEADO",
+      descripcion: `Editó al empleado ${nombre} ${apellido}`,
+      recursoId: empresaId,
+      recursoTipo: "empleado",
+    },
+  });
+
+  revalidatePath(`/dashboard/empresas/${empresaId}/empleados`);
+  redirect(`/dashboard/empresas/${empresaId}/empleados`);
 }
 
 // ── Eliminar empleado ──
