@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { empresaAccesible } from "@/lib/accesoEmpresas";
 import { formatearCLP, formatearPeriodo } from "@/lib/formato";
 import { ControlesLiquidacion } from "./ControlesLiquidacion";
 import { ArrowLeft, Wallet } from "lucide-react";
@@ -24,12 +25,9 @@ export default async function RemuneracionesPage({
   const { periodo: periodoParam } = await searchParams;
   const periodo = periodoParam || periodoActual();
 
-  // Verificar empresa
+  // Verificar empresa (según el rol del usuario)
   const sesion = await auth();
-  const estudioId = sesion?.user?.estudioId;
-  const empresa = estudioId
-    ? await prisma.empresa.findFirst({ where: { id, estudioId } })
-    : null;
+  const empresa = sesion?.user ? await empresaAccesible(sesion.user, id) : null;
 
   if (!empresa) {
     notFound();
