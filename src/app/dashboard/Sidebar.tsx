@@ -33,6 +33,11 @@ const NAV_ADMIN = [
   { href: "/dashboard/configuracion", label: "Configuración", icon: Settings },
 ];
 
+// El CLIENTE solo ve su empresa
+const NAV_CLIENTE = [
+  { href: "/dashboard/mi-empresa", label: "Mi empresa", icon: Building2 },
+];
+
 export function Sidebar({
   nombre,
   email,
@@ -47,9 +52,14 @@ export function Sidebar({
   const pathname = usePathname();
   const [abierto, setAbierto] = useState(false); // drawer móvil
 
-  // Si es admin, sumamos los links de admin a la navegación
+  // Navegación según el rol
   const esAdmin = rol === "ADMIN" || rol === "SUPERADMIN";
-  const navItems = esAdmin ? [...NAV, ...NAV_ADMIN] : NAV;
+  const navItems =
+    rol === "CLIENTE"
+      ? NAV_CLIENTE
+      : esAdmin
+      ? [...NAV, ...NAV_ADMIN]
+      : NAV; // CONTADOR: dashboard, empresas, alertas
 
   function esActivo(href: string): boolean {
     if (href === "/dashboard") return pathname === "/dashboard";

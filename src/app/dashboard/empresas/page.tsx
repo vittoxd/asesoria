@@ -1,32 +1,30 @@
 // Lista de empresas — el sidebar ya vive en el layout
 import Link from "next/link";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { empresasVisibles } from "@/lib/accesoEmpresas";
 import { BotonEliminar } from "./BotonEliminar";
 import { Plus, Pencil, Building2 } from "lucide-react";
 
 export default async function EmpresasPage() {
   const sesion = await auth();
-  const estudioId = sesion?.user?.estudioId;
+  const esAdmin = sesion?.user?.rol === "ADMIN" || sesion?.user?.rol === "SUPERADMIN";
 
-  const empresas = estudioId
-    ? await prisma.empresa.findMany({
-        where: { estudioId },
-        orderBy: { creadoEn: "desc" },
-      })
-    : [];
+  // Solo las empresas que este usuario puede ver, según su rol
+  const empresas = sesion?.user ? await empresasVisibles(sesion.user) : [];
 
   return (
     <main className="max-w-7xl mx-auto px-8 py-10">
       {/* Encabezado de la página */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Empresas</h1>
-        <Link
-          href="/dashboard/empresas/nueva"
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-        >
-          <Plus size={16} /> Agregar empresa
-        </Link>
+        {esAdmin && (
+          <Link
+            href="/dashboard/empresas/nueva"
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={16} /> Agregar empresa
+          </Link>
+        )}
       </div>
 
       {empresas.length === 0 ? (
@@ -34,16 +32,20 @@ export default async function EmpresasPage() {
           <div className="w-16 h-16 mx-auto bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
             <Building2 className="text-blue-400" size={28} />
           </div>
-          <h3 className="text-lg font-semibold text-white">No tienes empresas todavía</h3>
+          <h3 className="text-lg font-semibold text-white">No hay empresas para mostrar</h3>
           <p className="text-slate-400 text-sm mt-1 mb-5">
-            Agrega tu primera empresa para empezar a gestionar sus declaraciones.
+            {esAdmin
+              ? "Agrega tu primera empresa para empezar a gestionar sus declaraciones."
+              : "Todavía no te han asignado empresas. Pídele a tu administrador que te asigne."}
           </p>
-          <Link
-            href="/dashboard/empresas/nueva"
-            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-          >
-            <Plus size={16} /> Agregar empresa
-          </Link>
+          {esAdmin && (
+            <Link
+              href="/dashboard/empresas/nueva"
+              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              <Plus size={16} /> Agregar empresa
+            </Link>
+          )}
         </div>
       ) : (
         <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
@@ -79,7 +81,7 @@ export default async function EmpresasPage() {
                       >
                         <Pencil size={14} /> Editar
                       </Link>
-                      <BotonEliminar id={empresa.id} nombre={empresa.razonSocial} />
+                      {esAdmin && <BotonEliminar id={empresa.id} nombre={empresa.razonSocial} />}
                     </div>
                   </td>
                 </tr>

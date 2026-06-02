@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { empresaAccesible } from "@/lib/accesoEmpresas";
 import { editarEmpleado } from "../../actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,10 +19,7 @@ export default async function EditarEmpleadoPage({
 
   // Verificar empresa y empleado (del estudio del usuario)
   const sesion = await auth();
-  const estudioId = sesion?.user?.estudioId;
-  const empresa = estudioId
-    ? await prisma.empresa.findFirst({ where: { id, estudioId } })
-    : null;
+  const empresa = sesion?.user ? await empresaAccesible(sesion.user, id) : null;
   if (!empresa) notFound();
 
   const empleado = await prisma.empleado.findFirst({

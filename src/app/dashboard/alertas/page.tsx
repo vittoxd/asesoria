@@ -2,7 +2,7 @@
 // Se calculan dinámicamente desde las empresas del estudio.
 import Link from "next/link";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { empresasVisibles } from "@/lib/accesoEmpresas";
 import { obtenerServicioSII } from "@/lib/services/sii";
 import { formatearCLP, formatearFecha } from "@/lib/formato";
 import { AlertTriangle, CalendarClock, CheckCircle2 } from "lucide-react";
@@ -18,11 +18,7 @@ function proximoVencimiento(): Date {
 
 export default async function AlertasPage() {
   const sesion = await auth();
-  const estudioId = sesion?.user?.estudioId;
-
-  const empresas = estudioId
-    ? await prisma.empresa.findMany({ where: { estudioId }, orderBy: { razonSocial: "asc" } })
-    : [];
+  const empresas = sesion?.user ? await empresasVisibles(sesion.user) : [];
 
   const sii = obtenerServicioSII();
   const situaciones = await Promise.all(empresas.map((e) => sii.obtenerSituacionTributaria(e.rut)));

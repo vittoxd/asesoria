@@ -61,6 +61,15 @@ export default async function UsuariosPage() {
               <option value="CLIENTE">Cliente (ve su empresa)</option>
             </select>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="empresaClienteId" className="text-slate-300">Empresa <span className="text-slate-500">(solo para clientes)</span></Label>
+            <select id="empresaClienteId" name="empresaClienteId" className="block w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm">
+              <option value="">— Ninguna —</option>
+              {empresas.map((e) => (
+                <option key={e.id} value={e.id}>{e.razonSocial}</option>
+              ))}
+            </select>
+          </div>
           <div className="md:col-span-2">
             <Button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold">
               Crear usuario

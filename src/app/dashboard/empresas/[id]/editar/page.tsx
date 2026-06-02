@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { empresaAccesible } from "@/lib/accesoEmpresas";
 import { actualizarEmpresa } from "../../actions";
 import { FormEmpresa } from "../../FormEmpresa";
 import { ArrowLeft } from "lucide-react";
@@ -15,10 +15,7 @@ export default async function EditarEmpresaPage({
   const { id } = await params;
 
   const sesion = await auth();
-  const estudioId = sesion?.user?.estudioId;
-  const empresa = estudioId
-    ? await prisma.empresa.findFirst({ where: { id, estudioId } })
-    : null;
+  const empresa = sesion?.user ? await empresaAccesible(sesion.user, id) : null;
 
   if (!empresa) {
     notFound();

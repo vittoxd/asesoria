@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { empresaAccesible } from "@/lib/accesoEmpresas";
 import { crearEmpleado } from "./actions";
 import { BotonEliminarEmpleado } from "./BotonEliminarEmpleado";
 import { formatearCLP } from "@/lib/formato";
@@ -19,10 +20,7 @@ export default async function EmpleadosPage({
   const { id } = await params;
 
   const sesion = await auth();
-  const estudioId = sesion?.user?.estudioId;
-  const empresa = estudioId
-    ? await prisma.empresa.findFirst({ where: { id, estudioId } })
-    : null;
+  const empresa = sesion?.user ? await empresaAccesible(sesion.user, id) : null;
 
   if (!empresa) {
     notFound();

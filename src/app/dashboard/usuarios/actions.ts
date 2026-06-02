@@ -35,6 +35,7 @@ export async function crearUsuario(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const rol = String(formData.get("rol") ?? "CONTADOR");
+  const empresaClienteId = String(formData.get("empresaClienteId") ?? "").trim();
 
   if (!nombre || !email || !password) {
     throw new Error("Nombre, email y contraseña son obligatorios");
@@ -44,6 +45,18 @@ export async function crearUsuario(formData: FormData) {
   }
   if (rol !== "CONTADOR" && rol !== "CLIENTE") {
     throw new Error("Rol inválido");
+  }
+  // Un CLIENTE debe estar ligado a una empresa de SU estudio
+  if (rol === "CLIENTE") {
+    if (!empresaClienteId) {
+      throw new Error("Debes elegir la empresa del cliente");
+    }
+    const empresa = await prisma.empresa.findFirst({
+      where: { id: empresaClienteId, estudioId },
+    });
+    if (!empresa) {
+      throw new Error("Empresa no válida");
+    }
   }
 
   const existe = await prisma.usuario.findUnique({ where: { email } });
@@ -62,6 +75,7 @@ export async function crearUsuario(formData: FormData) {
       rol,
       emailVerificado: true,
       estudioId, // queda en el mismo estudio del admin
+      empresaClienteId: rol === "CLIENTE" ? empresaClienteId : null,
     },
   });
 

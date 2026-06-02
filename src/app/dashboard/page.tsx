@@ -1,7 +1,7 @@
 // Dashboard principal — el sidebar y el logout ahora viven en layout.tsx
 import Link from "next/link";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { empresasVisibles } from "@/lib/accesoEmpresas";
 import { obtenerServicioSII } from "@/lib/services/sii";
 import { formatearFecha } from "@/lib/formato";
 import { Building2, AlertTriangle, CalendarClock, Plus } from "lucide-react";
@@ -18,14 +18,9 @@ function proximoVencimiento(): Date {
 export default async function DashboardPage() {
   const sesion = await auth();
   const usuario = sesion?.user;
-  const estudioId = usuario?.estudioId;
 
-  const empresas = estudioId
-    ? await prisma.empresa.findMany({
-        where: { estudioId },
-        orderBy: { creadoEn: "desc" },
-      })
-    : [];
+  // Empresas visibles según el rol (admin: todas, contador: asignadas, cliente: la suya)
+  const empresas = usuario ? await empresasVisibles(usuario) : [];
 
   const sii = obtenerServicioSII();
   const situaciones = await Promise.all(
