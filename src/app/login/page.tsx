@@ -151,10 +151,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Link a registro */}
+          {/* Links a registro y recuperar */}
           <p className="text-slate-500 text-sm text-center mt-6">
             ¿No tienes cuenta?{" "}
             <a href="/registro" className="text-blue-400 hover:text-blue-300">Crea tu estudio</a>
+          </p>
+          <p className="text-slate-500 text-sm text-center mt-2">
+            <a href="/recuperar" className="text-blue-400 hover:text-blue-300">¿Olvidaste tu contraseña?</a>
           </p>
         </div>
       </div>

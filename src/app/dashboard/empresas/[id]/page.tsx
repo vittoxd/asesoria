@@ -6,7 +6,7 @@ import { empresaAccesible } from "@/lib/accesoEmpresas";
 import { obtenerServicioSII } from "@/lib/services/sii";
 import { obtenerServicioDT } from "@/lib/services/dt";
 import { formatearCLP, formatearPeriodo, formatearFecha } from "@/lib/formato";
-import { ArrowLeft, Pencil, Users, Wallet } from "lucide-react";
+import { ArrowLeft, Pencil, Users, Wallet, FileText } from "lucide-react";
 import { GraficoF29 } from "./GraficoF29";
 
 export default async function DetalleEmpresaPage({
@@ -59,6 +59,12 @@ export default async function DetalleEmpresaPage({
             className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm"
           >
             <Wallet size={14} /> Remuneraciones
+          </Link>
+          <Link
+            href={`/dashboard/empresas/${empresa.id}/documentos`}
+            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 text-sm"
+          >
+            <FileText size={14} /> Documentos
           </Link>
           <Link
             href={`/dashboard/empresas/${empresa.id}/editar`}
@@ -147,11 +153,11 @@ export default async function DetalleEmpresaPage({
       </section>
 
       {/* Historial F29 */}
-      <section className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+      <section className="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto">
         <h2 className="text-sm font-semibold text-slate-400 uppercase px-6 pt-6 pb-3">
           Historial F29 (últimos 6 meses)
         </h2>
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[600px]">
           <thead className="bg-slate-900/50 text-slate-400">
             <tr>
               <th className="text-left font-medium px-6 py-2">Período</th>
