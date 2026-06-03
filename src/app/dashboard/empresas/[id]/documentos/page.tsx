@@ -9,7 +9,7 @@ import { formatearCLP, formatearFecha } from "@/lib/formato";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Download } from "lucide-react";
 
 export default async function DocumentosPage({
   params,
@@ -34,8 +34,20 @@ export default async function DocumentosPage({
       <Link href={`/dashboard/empresas/${id}`} className="inline-flex items-center gap-1 text-slate-400 hover:text-white text-sm">
         <ArrowLeft size={14} /> Volver a la empresa
       </Link>
-      <h1 className="text-2xl font-bold mt-2 mb-1">Documentos</h1>
-      <p className="text-slate-500 text-sm mb-6">{empresa.razonSocial}</p>
+      <div className="flex items-start justify-between mt-2 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-1">Documentos</h1>
+          <p className="text-slate-500 text-sm">{empresa.razonSocial}</p>
+        </div>
+        {documentos.length > 0 && (
+          <a
+            href={`/dashboard/empresas/${id}/documentos/exportar`}
+            className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            <Download size={16} /> Exportar a Excel
+          </a>
+        )}
+      </div>
 
       {/* Formulario */}
       <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 mb-6">
