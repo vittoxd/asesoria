@@ -48,8 +48,8 @@ export default async function EmpresasPage() {
           )}
         </div>
       ) : (
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-slate-900/50 text-slate-400">
               <tr>
                 <th className="text-left font-medium px-6 py-3">Razón Social</th>

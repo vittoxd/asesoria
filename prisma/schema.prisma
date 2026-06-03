@@ -66,8 +66,26 @@ model Usuario {
   sesiones          Sesion[]
   auditLogs         AuditLog[]
   alertasCreadas    Alerta[]
+  resetsPassword    PasswordReset[]
 
   @@map("usuarios")
+}
+
+// ─────────────────────────────────────────────
+// TOKEN DE RECUPERACIÓN DE CONTRASEÑA
+// ─────────────────────────────────────────────
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  usuarioId String
+  expiraEn  DateTime
+  usado     Boolean  @default(false)
+  creadoEn  DateTime @default(now())
+
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
 }
 
 // ─────────────────────────────────────────────
